@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+decisions.json
+venv/
+.venv/

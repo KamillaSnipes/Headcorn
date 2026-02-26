@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новое решение — Трекер</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .container { max-width: 640px; margin: 0 auto; padding: 24px 16px; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        header h1 { font-size: 1.3rem; font-weight: 700; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 8px; border: none;
+            font-size: 0.85rem; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.15s;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #334155; }
+        .btn-ghost:hover { background: #1e293b; }
+
+        .form-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #334155;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>＋ Новое решение</h1>
+        <a href="{{ url_for('index') }}" class="btn btn-ghost">← Назад</a>
+    </header>
+
+    <div class="form-card">
+        <form method="POST" action="{{ url_for('add') }}">
+            <div class="form-group">
+                <label>Решение *</label>
+                <input type="text" name="decision" required placeholder="Что решили?">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Блок</label>
+                    <select name="block">
+                        {% for key, label in block_map.items() %}
+                        <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Статус</label>
+                    <select name="status">
+                        {% for key, info in status_map.items() %}
+                        <option value="{{ key }}">{{ info.emoji }} {{ info.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Ответственный</label>
+                <input type="text" name="responsible" placeholder="Кто отвечает за исполнение?">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Срок</label>
+                    <input type="date" name="deadline">
+                </div>
+                <div class="form-group">
+                    <label>Дата проверки</label>
+                    <input type="date" name="check_date">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Источник</label>
+                <input type="text" name="source" placeholder="Встреча 25.02, стратсессия и т.д.">
+            </div>
+
+            <div class="form-group">
+                <label>Комментарий</label>
+                <textarea name="comment" placeholder="Контекст, что проверить, на что обратить внимание..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>ID (опционально — сгенерируется автоматически)</label>
+                <input type="text" name="id" placeholder="S-09, P-05, C-05...">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Сохранить решение</button>
+                <a href="{{ url_for('index') }}" class="btn btn-ghost">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

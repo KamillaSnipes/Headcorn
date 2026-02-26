@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Трекер решений — Headcorn</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #1e293b;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        header h1 { font-size: 1.5rem; font-weight: 700; color: #f8fafc; }
+        header .subtitle { font-size: 0.85rem; color: #64748b; }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.15s;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+        .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #334155; }
+        .btn-ghost:hover { background: #1e293b; color: #e2e8f0; }
+        .btn-ghost.active { background: #1e293b; color: #f8fafc; border-color: #3b82f6; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-number { font-size: 1.8rem; font-weight: 700; }
+        .stat-label { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .filters label { font-size: 0.8rem; color: #64748b; margin-right: 4px; }
+
+        .block-section {
+            margin-bottom: 32px;
+        }
+        .block-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f8fafc;
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #1e293b;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .decision-card {
+            background: #1e293b;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 8px;
+            border: 1px solid #334155;
+            transition: border-color 0.15s;
+        }
+        .decision-card:hover { border-color: #475569; }
+        .decision-card.status-overdue { border-left: 3px solid #ef4444; }
+        .decision-card.status-active { border-left: 3px solid #eab308; }
+        .decision-card.status-done { border-left: 3px solid #22c55e; }
+        .decision-card.status-deferred { border-left: 3px solid #94a3b8; }
+        .decision-card.status-no_deadline { border-left: 3px solid #f97316; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .card-id {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .card-title { font-weight: 600; font-size: 0.95rem; flex: 1; }
+        .card-status {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+        .meta-item { display: flex; align-items: center; gap: 4px; }
+        .meta-icon { font-size: 0.9rem; }
+
+        .card-comment {
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            background: #0f172a;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+
+        .inline-form {
+            display: none;
+            margin-top: 12px;
+            padding: 12px;
+            background: #0f172a;
+            border-radius: 8px;
+        }
+        .inline-form.open { display: block; }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .form-group label { font-size: 0.7rem; color: #64748b; }
+        .form-group input, .form-group select, .form-group textarea {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #e2e8f0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+
+        @media (max-width: 640px) {
+            .container { padding: 12px; }
+            header h1 { font-size: 1.2rem; }
+            .stats { grid-template-columns: repeat(3, 1fr); }
+            .form-row { grid-template-columns: 1fr; }
+            .card-header { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div>
+            <h1>Трекер решений</h1>
+            <div class="subtitle">Headcorn — контроль исполнения</div>
+        </div>
+        <a href="{{ url_for('add') }}" class="btn btn-primary">＋ Новое решение</a>
+    </header>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number" style="color: #ef4444;">{{ stats.overdue }}</div>
+            <div class="stat-label">🔴 Просрочено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #eab308;">{{ stats.active }}</div>
+            <div class="stat-label">🟡 В работе</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #f97316;">{{ stats.no_deadline }}</div>
+            <div class="stat-label">🟠 Без срока</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #22c55e;">{{ stats.done }}</div>
+            <div class="stat-label">🟢 Выполнено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #94a3b8;">{{ stats.deferred }}</div>
+            <div class="stat-label">⏳ Отложено</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" style="color: #f8fafc;">{{ stats.total }}</div>
+            <div class="stat-label">Всего</div>
+        </div>
+    </div>
+
+    <div class="filters">
+        <label>Блок:</label>
+        <a href="?block=all&status={{ filter_status }}" class="btn btn-sm btn-ghost {% if filter_block == 'all' %}active{% endif %}">Все</a>
+        {% for key, label in block_map.items() %}
+        <a href="?block={{ key }}&status={{ filter_status }}" class="btn btn-sm btn-ghost {% if filter_block == key %}active{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+    <div class="filters">
+        <label>Статус:</label>
+        <a href="?block={{ filter_block }}&status=all" class="btn btn-sm btn-ghost {% if filter_status == 'all' %}active{% endif %}">Все</a>
+        {% for key, info in status_map.items() %}
+        <a href="?block={{ filter_block }}&status={{ key }}" class="btn btn-sm btn-ghost {% if filter_status == key %}active{% endif %}">{{ info.emoji }} {{ info.label }}</a>
+        {% endfor %}
+    </div>
+
+    {% for block_key, decisions in blocks.items() %}
+    <div class="block-section">
+        <div class="block-title">{{ block_map.get(block_key, block_key) }}</div>
+        {% for d in decisions %}
+        <div class="decision-card status-{{ d.status }}">
+            <div class="card-header">
+                <span class="card-id">{{ d.id }}</span>
+                <span class="card-title">{{ d.decision }}</span>
+                <span class="card-status" style="background: {{ status_map[d.status].color }}20; color: {{ status_map[d.status].color }};">
+                    {{ status_map[d.status].emoji }} {{ status_map[d.status].label }}
+                </span>
+            </div>
+            <div class="card-meta">
+                <span class="meta-item"><span class="meta-icon">👤</span> {{ d.responsible }}</span>
+                {% if d.deadline %}
+                <span class="meta-item"><span class="meta-icon">📅</span> Срок: {{ d.deadline }}</span>
+                {% endif %}
+                {% if d.check_date %}
+                <span class="meta-item"><span class="meta-icon">🔍</span> Проверка: {{ d.check_date }}</span>
+                {% endif %}
+                {% if d.source %}
+                <span class="meta-item"><span class="meta-icon">📎</span> {{ d.source }}</span>
+                {% endif %}
+            </div>
+            {% if d.comment %}
+            <div class="card-comment">{{ d.comment }}</div>
+            {% endif %}
+            <div class="card-actions">
+                <button class="btn btn-sm btn-ghost" onclick="toggleEdit('{{ d.id }}')">✏️ Изменить</button>
+            </div>
+            <div class="inline-form" id="edit-{{ d.id }}">
+                <form method="POST" action="{{ url_for('update', decision_id=d.id) }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Статус</label>
+                            <select name="status">
+                                {% for key, info in status_map.items() %}
+                                <option value="{{ key }}" {% if d.status == key %}selected{% endif %}>{{ info.emoji }} {{ info.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ответственный</label>
+                            <input type="text" name="responsible" value="{{ d.responsible }}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Срок</label>
+                            <input type="date" name="deadline" value="{{ d.deadline }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Комментарий</label>
+                            <input type="text" name="comment" value="{{ d.comment }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary" style="margin-top:8px;">Сохранить</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    {% if not blocks %}
+    <div style="text-align:center; padding:60px 20px; color:#64748b;">
+        <div style="font-size:2rem; margin-bottom:12px;">📋</div>
+        <div>Нет решений по выбранным фильтрам</div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleEdit(id) {
+    const el = document.getElementById('edit-' + id);
+    el.classList.toggle('open');
+}
+</script>
+</body>
+</html>
