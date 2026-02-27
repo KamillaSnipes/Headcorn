@@ -195,7 +195,10 @@
             <h1>Трекер решений</h1>
             <div class="subtitle">Headcorn — контроль исполнения</div>
         </div>
-        <a href="{{ url_for('add') }}" class="btn btn-primary">＋ Новое решение</a>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="{{ url_for('sync') }}" class="btn btn-ghost">🔄 Синхронизация</a>
+            <a href="{{ url_for('add') }}" class="btn btn-primary">＋ Новое решение</a>
+        </div>
     </header>
 
     <div class="stats">

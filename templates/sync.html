@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Синхронизация — Context Hub</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 24px 16px; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        header h1 { font-size: 1.3rem; font-weight: 700; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 20px; border-radius: 8px; border: none;
+            font-size: 0.85rem; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.15s;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-green { background: #22c55e; color: white; }
+        .btn-green:hover { background: #16a34a; }
+        .btn-orange { background: #f97316; color: white; }
+        .btn-orange:hover { background: #ea580c; }
+        .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #334155; }
+        .btn-ghost:hover { background: #1e293b; }
+        .btn-lg { padding: 14px 28px; font-size: 1rem; }
+
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #334155;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-dot.ok { background: #22c55e; }
+        .status-dot.fail { background: #ef4444; }
+        .status-dot.warn { background: #f97316; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .stat {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .stat-num { font-size: 1.6rem; font-weight: 700; }
+        .stat-label { font-size: 0.7rem; color: #94a3b8; margin-top: 4px; }
+
+        .sync-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.85rem;
+        }
+        .flash-success { background: #22c55e20; border: 1px solid #22c55e40; color: #86efac; }
+        .flash-info { background: #3b82f620; border: 1px solid #3b82f640; color: #93c5fd; }
+
+        .meta-text { font-size: 0.8rem; color: #64748b; margin-top: 8px; }
+        .arrow { font-size: 1.5rem; color: #64748b; text-align: center; padding: 8px; }
+
+        @media (max-width: 640px) {
+            .sync-actions { flex-direction: column; }
+            .btn-lg { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>🔄 Синхронизация</h1>
+        <a href="{{ url_for('index') }}" class="btn btn-ghost">← Дашборд</a>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-title">
+            <span class="status-dot {{ 'ok' if hub_ok else ('warn' if has_key else 'fail') }}"></span>
+            Context Hub
+        </div>
+        {% if not has_key %}
+        <p style="color: #f97316; font-size: 0.85rem;">
+            ⚠️ API ключ не настроен. Добавьте переменную <code>CONTEXT_HUB_KEY</code> в Railway.
+        </p>
+        {% elif hub_ok %}
+        <p style="color: #86efac; font-size: 0.85rem;">Подключение установлено</p>
+        <p class="meta-text">{{ hub_url }}</p>
+        {% if hub_stats %}
+        <div class="stats-grid">
+            <div class="stat">
+                <div class="stat-num" style="color: #f8fafc;">{{ hub_stats.total or 0 }}</div>
+                <div class="stat-label">В Context Hub</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num" style="color: #eab308;">{{ hub_stats.get('byStatus', {}).get('active', 0) }}</div>
+                <div class="stat-label">Активных</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num" style="color: #ef4444;">{{ hub_stats.get('overdue', 0) }}</div>
+                <div class="stat-label">Просрочено</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num" style="color: #22c55e;">{{ hub_stats.get('verified', 0) }}</div>
+                <div class="stat-label">Проверено</div>
+            </div>
+        </div>
+        {% endif %}
+        {% else %}
+        <p style="color: #ef4444; font-size: 0.85rem;">❌ Не удалось подключиться</p>
+        <p class="meta-text">{{ hub_url }}</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-title">📊 Локальный трекер</div>
+        <div class="stats-grid">
+            <div class="stat">
+                <div class="stat-num" style="color: #f8fafc;">{{ local_count }}</div>
+                <div class="stat-label">Всего решений</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num" style="color: #22c55e;">{{ local_with_hub }}</div>
+                <div class="stat-label">Связаны с Hub</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num" style="color: #f97316;">{{ local_only }}</div>
+                <div class="stat-label">Только локально</div>
+            </div>
+        </div>
+        {% if last_sync %}
+        <p class="meta-text" style="margin-top: 12px;">
+            Последняя синхронизация: {{ last_sync.timestamp[:16].replace('T', ' ') }}
+            ({{ last_sync.action.replace('sync_pull', '← загрузка').replace('sync_push', '→ отправка') }},
+            {{ last_sync.count }} шт.)
+        </p>
+        {% endif %}
+    </div>
+
+    {% if has_key and hub_ok %}
+    <div class="card">
+        <div class="card-title">⚡ Действия</div>
+        <div class="sync-actions">
+            <form method="POST" style="display:inline;">
+                <input type="hidden" name="action" value="pull">
+                <button type="submit" class="btn btn-green btn-lg">
+                    ⬇️ Загрузить из Context Hub
+                </button>
+            </form>
+            <form method="POST" style="display:inline;">
+                <input type="hidden" name="action" value="push">
+                <button type="submit" class="btn btn-orange btn-lg">
+                    ⬆️ Отправить в Context Hub
+                </button>
+            </form>
+            <form method="POST" style="display:inline;">
+                <input type="hidden" name="action" value="full">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    🔄 Полная синхронизация
+                </button>
+            </form>
+        </div>
+        <p class="meta-text" style="margin-top: 16px;">
+            <strong>⬇️ Загрузить</strong> — новые решения из Context Hub появятся в трекере<br>
+            <strong>⬆️ Отправить</strong> — локальные решения уйдут в Context Hub<br>
+            <strong>🔄 Полная</strong> — оба направления за один клик
+        </p>
+    </div>
+    {% endif %}
+</div>
+</body>
+</html>
