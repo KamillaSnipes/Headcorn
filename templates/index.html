@@ -3,322 +3,475 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Трекер решений — Headcorn</title>
+    <title>Decision Tracker — Headcorn</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: #0f172a;
-            color: #e2e8f0;
+            background: #f8f9fa;
+            color: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #e8e8e8;
+            padding: 20px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .sidebar-brand {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 8px;
+        }
+        .sidebar-brand h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+        .sidebar-brand .sub {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 2px;
+        }
+        .sidebar nav a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: #555;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar nav a:hover { background: #f8f9fa; color: #1a1a2e; }
+        .sidebar nav a.active {
+            background: #eef2ff;
+            color: #4f46e5;
+            border-left-color: #4f46e5;
+            font-weight: 600;
+        }
+        .sidebar nav a .icon { font-size: 1rem; width: 20px; text-align: center; }
+
+        .main {
+            margin-left: 220px;
+            flex: 1;
+            padding: 28px 32px;
             min-height: 100vh;
         }
-        .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
 
-        header {
+        .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 20px 0;
-            border-bottom: 1px solid #1e293b;
             margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
         }
-        header h1 { font-size: 1.5rem; font-weight: 700; color: #f8fafc; }
-        header .subtitle { font-size: 0.85rem; color: #64748b; }
+        .page-header h1 { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
 
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.15s;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 16px; border-radius: 8px; border: none;
+            font-size: 0.82rem; font-weight: 500; cursor: pointer;
+            text-decoration: none; transition: all 0.15s;
         }
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-sm { padding: 4px 10px; font-size: 0.75rem; }
-        .btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #334155; }
-        .btn-ghost:hover { background: #1e293b; color: #e2e8f0; }
-        .btn-ghost.active { background: #1e293b; color: #f8fafc; border-color: #3b82f6; }
+        .btn-primary { background: #4f46e5; color: white; }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-sm { padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; }
+        .btn-outline { background: #fff; color: #555; border: 1px solid #ddd; }
+        .btn-outline:hover { background: #f8f9fa; border-color: #bbb; }
+        .btn-outline.active { background: #eef2ff; border-color: #4f46e5; color: #4f46e5; }
 
-        .stats {
+        .stats-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
             margin-bottom: 24px;
         }
         .stat-card {
-            background: #1e293b;
+            background: #fff;
             border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-        }
-        .stat-number { font-size: 1.8rem; font-weight: 700; }
-        .stat-label { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
-
-        .filters {
+            padding: 20px;
+            border: 1px solid #eee;
             display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .stat-card .stat-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+        .stat-card .stat-num { font-size: 1.8rem; font-weight: 700; line-height: 1; }
+        .stat-card .stat-label { font-size: 0.75rem; color: #888; margin-top: 2px; }
+
+        .alert-box {
+            background: #fff8f0;
+            border: 1px solid #fde2c8;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+        }
+        .alert-box .alert-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #c2410c;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
             gap: 8px;
+        }
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-top: 1px solid #fde2c8;
+            font-size: 0.82rem;
+        }
+        .alert-item:first-of-type { border-top: none; }
+        .alert-item .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #ef4444; display: inline-block; margin-right: 8px;
+        }
+        .alert-item .no-owner { color: #999; font-size: 0.75rem; }
+
+        .filters-bar {
+            display: flex;
+            gap: 6px;
             margin-bottom: 20px;
             flex-wrap: wrap;
             align-items: center;
         }
-        .filters label { font-size: 0.8rem; color: #64748b; margin-right: 4px; }
-
-        .block-section {
-            margin-bottom: 32px;
-        }
-        .block-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #f8fafc;
-            margin-bottom: 12px;
-            padding: 8px 12px;
-            background: #1e293b;
-            border-radius: 8px;
-            border-left: 3px solid #3b82f6;
-        }
-
-        .decision-card {
-            background: #1e293b;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 8px;
-            border: 1px solid #334155;
-            transition: border-color 0.15s;
-        }
-        .decision-card:hover { border-color: #475569; }
-        .decision-card.status-overdue { border-left: 3px solid #ef4444; }
-        .decision-card.status-active { border-left: 3px solid #eab308; }
-        .decision-card.status-done { border-left: 3px solid #22c55e; }
-        .decision-card.status-deferred { border-left: 3px solid #94a3b8; }
-        .decision-card.status-no_deadline { border-left: 3px solid #f97316; }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-        .card-id {
-            font-size: 0.7rem;
-            color: #64748b;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            background: #0f172a;
-            padding: 2px 6px;
-            border-radius: 4px;
-            white-space: nowrap;
-        }
-        .card-title { font-weight: 600; font-size: 0.95rem; flex: 1; }
-        .card-status {
+        .filters-bar .filter-label {
             font-size: 0.75rem;
-            padding: 3px 8px;
-            border-radius: 12px;
-            white-space: nowrap;
+            color: #888;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+        }
+
+        .tag {
+            display: inline-flex;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
             font-weight: 500;
         }
+        .tag-red { background: #fef2f2; color: #dc2626; }
+        .tag-yellow { background: #fefce8; color: #ca8a04; }
+        .tag-green { background: #f0fdf4; color: #16a34a; }
+        .tag-gray { background: #f3f4f6; color: #6b7280; }
+        .tag-orange { background: #fff7ed; color: #ea580c; }
+        .tag-blue { background: #eef2ff; color: #4f46e5; }
 
-        .card-meta {
+        .section-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            padding: 12px 16px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 10px 10px 0 0;
+            margin-top: 20px;
             display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            font-size: 0.8rem;
-            color: #94a3b8;
-            margin-bottom: 8px;
-        }
-        .meta-item { display: flex; align-items: center; gap: 4px; }
-        .meta-icon { font-size: 0.9rem; }
-
-        .card-comment {
-            font-size: 0.8rem;
-            color: #cbd5e1;
-            background: #0f172a;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin-top: 8px;
-        }
-
-        .card-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .inline-form {
-            display: none;
-            margin-top: 12px;
-            padding: 12px;
-            background: #0f172a;
-            border-radius: 8px;
-        }
-        .inline-form.open { display: block; }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            align-items: center;
             gap: 8px;
-            margin-bottom: 8px;
         }
-        .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .form-group label { font-size: 0.7rem; color: #64748b; }
-        .form-group input, .form-group select, .form-group textarea {
-            background: #1e293b;
-            border: 1px solid #334155;
-            color: #e2e8f0;
+        .section-title .count {
+            background: #f3f4f6;
+            color: #888;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+        }
+
+        .decision-list {
+            background: #fff;
+            border: 1px solid #eee;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .decision-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #f5f5f5;
+            transition: background 0.1s;
+        }
+        .decision-row:last-child { border-bottom: none; }
+        .decision-row:hover { background: #fafbff; }
+
+        .decision-id {
+            font-size: 0.7rem;
+            color: #999;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            min-width: 40px;
+            padding-top: 2px;
+        }
+        .decision-body { flex: 1; }
+        .decision-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .decision-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .decision-meta span { display: flex; align-items: center; gap: 3px; }
+        .decision-comment {
+            margin-top: 6px;
+            font-size: 0.78rem;
+            color: #666;
+            background: #f8f9fa;
             padding: 6px 10px;
             border-radius: 6px;
-            font-size: 0.85rem;
-            font-family: inherit;
         }
-        .form-group textarea { resize: vertical; min-height: 60px; }
+        .decision-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            min-width: 110px;
+        }
 
-        @media (max-width: 640px) {
-            .container { padding: 12px; }
-            header h1 { font-size: 1.2rem; }
-            .stats { grid-template-columns: repeat(3, 1fr); }
-            .form-row { grid-template-columns: 1fr; }
-            .card-header { flex-direction: column; }
+        .edit-panel {
+            display: none;
+            padding: 12px 16px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+        .edit-panel.open { display: block; }
+        .edit-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: end;
+        }
+        .edit-grid .form-group { display: flex; flex-direction: column; gap: 4px; }
+        .edit-grid label { font-size: 0.7rem; color: #888; font-weight: 500; }
+        .edit-grid input, .edit-grid select {
+            padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px;
+            font-size: 0.8rem; font-family: inherit; background: #fff;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+        .col-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .col-card h3 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .col-card h3 a { font-size: 0.75rem; color: #4f46e5; text-decoration: none; }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 16px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .edit-grid { grid-template-columns: 1fr 1fr; }
+            .two-col { grid-template-columns: 1fr; }
+            .decision-actions { min-width: auto; }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <header>
-        <div>
-            <h1>Трекер решений</h1>
-            <div class="subtitle">Headcorn — контроль исполнения</div>
-        </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="{{ url_for('sync') }}" class="btn btn-ghost">🔄 Синхронизация</a>
-            <a href="{{ url_for('add') }}" class="btn btn-primary">＋ Новое решение</a>
-        </div>
-    </header>
 
-    <div class="stats">
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h2>Decision Tracker</h2>
+        <div class="sub">Headcorn — контроль исполнения</div>
+    </div>
+    <nav>
+        <a href="{{ url_for('index') }}" class="active"><span class="icon">📊</span> Dashboard</a>
+        <a href="{{ url_for('index') }}?status=overdue"><span class="icon">🔴</span> Просроченные</a>
+        <a href="{{ url_for('index') }}?status=active"><span class="icon">🟡</span> В работе</a>
+        <a href="{{ url_for('sync') }}"><span class="icon">🔄</span> Синхронизация</a>
+        <a href="{{ url_for('add') }}"><span class="icon">➕</span> Новое решение</a>
+        <a href="{{ url_for('api_decisions') }}"><span class="icon">📡</span> API</a>
+    </nav>
+</aside>
+
+<main class="main">
+    <div class="page-header">
+        <h1>Dashboard</h1>
+        <a href="{{ url_for('add') }}" class="btn btn-primary">＋ Новое решение</a>
+    </div>
+
+    <div class="stats-row">
         <div class="stat-card">
-            <div class="stat-number" style="color: #ef4444;">{{ stats.overdue }}</div>
-            <div class="stat-label">🔴 Просрочено</div>
+            <div class="stat-icon" style="background:#eef2ff;">📋</div>
+            <div>
+                <div class="stat-num">{{ stats.total }}</div>
+                <div class="stat-label">Всего решений</div>
+            </div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" style="color: #eab308;">{{ stats.active }}</div>
-            <div class="stat-label">🟡 В работе</div>
+            <div class="stat-icon" style="background:#fef2f2;">🔴</div>
+            <div>
+                <div class="stat-num" style="color:#dc2626;">{{ stats.overdue }}</div>
+                <div class="stat-label">Просроченных</div>
+            </div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" style="color: #f97316;">{{ stats.no_deadline }}</div>
-            <div class="stat-label">🟠 Без срока</div>
+            <div class="stat-icon" style="background:#fefce8;">🟡</div>
+            <div>
+                <div class="stat-num" style="color:#ca8a04;">{{ stats.active }}</div>
+                <div class="stat-label">В работе</div>
+            </div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" style="color: #22c55e;">{{ stats.done }}</div>
-            <div class="stat-label">🟢 Выполнено</div>
+            <div class="stat-icon" style="background:#f0fdf4;">🟢</div>
+            <div>
+                <div class="stat-num" style="color:#16a34a;">{{ stats.done }}</div>
+                <div class="stat-label">Выполнено</div>
+            </div>
         </div>
         <div class="stat-card">
-            <div class="stat-number" style="color: #94a3b8;">{{ stats.deferred }}</div>
-            <div class="stat-label">⏳ Отложено</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-number" style="color: #f8fafc;">{{ stats.total }}</div>
-            <div class="stat-label">Всего</div>
+            <div class="stat-icon" style="background:#fff7ed;">🟠</div>
+            <div>
+                <div class="stat-num" style="color:#ea580c;">{{ stats.no_deadline }}</div>
+                <div class="stat-label">Без срока</div>
+            </div>
         </div>
     </div>
 
-    <div class="filters">
-        <label>Блок:</label>
-        <a href="?block=all&status={{ filter_status }}" class="btn btn-sm btn-ghost {% if filter_block == 'all' %}active{% endif %}">Все</a>
-        {% for key, label in block_map.items() %}
-        <a href="?block={{ key }}&status={{ filter_status }}" class="btn btn-sm btn-ghost {% if filter_block == key %}active{% endif %}">{{ label }}</a>
+    {% if stats.overdue > 0 %}
+    <div class="alert-box">
+        <div class="alert-title">⚠️ Требуют внимания: {{ stats.overdue }} просроченных решений</div>
+        {% for block_key, decisions in blocks.items() %}
+        {% for d in decisions %}
+        {% if d.status == 'overdue' %}
+        <div class="alert-item">
+            <div>
+                <span class="dot"></span>
+                <strong>{{ d.decision }}</strong>
+                &nbsp;
+                <span class="tag tag-red">{{ block_map.get(d.block, d.block) }}</span>
+            </div>
+            <div class="no-owner">{{ d.responsible if d.responsible else 'Без ответственного' }}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
         {% endfor %}
     </div>
-    <div class="filters">
-        <label>Статус:</label>
-        <a href="?block={{ filter_block }}&status=all" class="btn btn-sm btn-ghost {% if filter_status == 'all' %}active{% endif %}">Все</a>
+    {% endif %}
+
+    <div class="filters-bar">
+        <span class="filter-label">Блок:</span>
+        <a href="?block=all&status={{ filter_status }}" class="btn btn-sm btn-outline {% if filter_block == 'all' %}active{% endif %}">Все</a>
+        {% for key, label in block_map.items() %}
+        <a href="?block={{ key }}&status={{ filter_status }}" class="btn btn-sm btn-outline {% if filter_block == key %}active{% endif %}">{{ label }}</a>
+        {% endfor %}
+    </div>
+    <div class="filters-bar">
+        <span class="filter-label">Статус:</span>
+        <a href="?block={{ filter_block }}&status=all" class="btn btn-sm btn-outline {% if filter_status == 'all' %}active{% endif %}">Все</a>
         {% for key, info in status_map.items() %}
-        <a href="?block={{ filter_block }}&status={{ key }}" class="btn btn-sm btn-ghost {% if filter_status == key %}active{% endif %}">{{ info.emoji }} {{ info.label }}</a>
+        <a href="?block={{ filter_block }}&status={{ key }}" class="btn btn-sm btn-outline {% if filter_status == key %}active{% endif %}">{{ info.emoji }} {{ info.label }}</a>
         {% endfor %}
     </div>
 
     {% for block_key, decisions in blocks.items() %}
-    <div class="block-section">
-        <div class="block-title">{{ block_map.get(block_key, block_key) }}</div>
+    <div class="section-title">
+        {{ block_map.get(block_key, block_key) }}
+        <span class="count">{{ decisions|length }}</span>
+    </div>
+    <div class="decision-list">
         {% for d in decisions %}
-        <div class="decision-card status-{{ d.status }}">
-            <div class="card-header">
-                <span class="card-id">{{ d.id }}</span>
-                <span class="card-title">{{ d.decision }}</span>
-                <span class="card-status" style="background: {{ status_map[d.status].color }}20; color: {{ status_map[d.status].color }};">
-                    {{ status_map[d.status].emoji }} {{ status_map[d.status].label }}
-                </span>
-            </div>
-            <div class="card-meta">
-                <span class="meta-item"><span class="meta-icon">👤</span> {{ d.responsible }}</span>
-                {% if d.deadline %}
-                <span class="meta-item"><span class="meta-icon">📅</span> Срок: {{ d.deadline }}</span>
-                {% endif %}
-                {% if d.check_date %}
-                <span class="meta-item"><span class="meta-icon">🔍</span> Проверка: {{ d.check_date }}</span>
-                {% endif %}
-                {% if d.source %}
-                <span class="meta-item"><span class="meta-icon">📎</span> {{ d.source }}</span>
+        <div class="decision-row">
+            <div class="decision-id">{{ d.id }}</div>
+            <div class="decision-body">
+                <div class="decision-title">{{ d.decision }}</div>
+                <div class="decision-meta">
+                    <span>👤 {{ d.responsible }}</span>
+                    {% if d.deadline %}<span>📅 {{ d.deadline }}</span>{% endif %}
+                    {% if d.check_date %}<span>🔍 {{ d.check_date }}</span>{% endif %}
+                    {% if d.source %}<span>📎 {{ d.source }}</span>{% endif %}
+                </div>
+                {% if d.comment %}
+                <div class="decision-comment">{{ d.comment }}</div>
                 {% endif %}
             </div>
-            {% if d.comment %}
-            <div class="card-comment">{{ d.comment }}</div>
-            {% endif %}
-            <div class="card-actions">
-                <button class="btn btn-sm btn-ghost" onclick="toggleEdit('{{ d.id }}')">✏️ Изменить</button>
+            <div class="decision-actions">
+                {% set tag_class = {'overdue': 'tag-red', 'active': 'tag-yellow', 'done': 'tag-green', 'deferred': 'tag-gray', 'no_deadline': 'tag-orange'} %}
+                <span class="tag {{ tag_class.get(d.status, 'tag-gray') }}">{{ status_map[d.status].label }}</span>
+                <button class="btn btn-sm btn-outline" onclick="toggleEdit('{{ d.id }}')">✏️ Изменить</button>
             </div>
-            <div class="inline-form" id="edit-{{ d.id }}">
-                <form method="POST" action="{{ url_for('update', decision_id=d.id) }}">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Статус</label>
-                            <select name="status">
-                                {% for key, info in status_map.items() %}
-                                <option value="{{ key }}" {% if d.status == key %}selected{% endif %}>{{ info.emoji }} {{ info.label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Ответственный</label>
-                            <input type="text" name="responsible" value="{{ d.responsible }}">
-                        </div>
+        </div>
+        <div class="edit-panel" id="edit-{{ d.id }}">
+            <form method="POST" action="{{ url_for('update', decision_id=d.id) }}">
+                <div class="edit-grid">
+                    <div class="form-group">
+                        <label>Статус</label>
+                        <select name="status">
+                            {% for key, info in status_map.items() %}
+                            <option value="{{ key }}" {% if d.status == key %}selected{% endif %}>{{ info.emoji }} {{ info.label }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Срок</label>
-                            <input type="date" name="deadline" value="{{ d.deadline }}">
-                        </div>
-                        <div class="form-group">
-                            <label>Комментарий</label>
-                            <input type="text" name="comment" value="{{ d.comment }}">
-                        </div>
+                    <div class="form-group">
+                        <label>Ответственный</label>
+                        <input type="text" name="responsible" value="{{ d.responsible }}">
                     </div>
-                    <button type="submit" class="btn btn-sm btn-primary" style="margin-top:8px;">Сохранить</button>
-                </form>
-            </div>
+                    <div class="form-group">
+                        <label>Срок</label>
+                        <input type="date" name="deadline" value="{{ d.deadline }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Комментарий</label>
+                        <input type="text" name="comment" value="{{ d.comment }}">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-sm btn-primary" style="margin-top:10px;">Сохранить</button>
+            </form>
         </div>
         {% endfor %}
     </div>
     {% endfor %}
 
     {% if not blocks %}
-    <div style="text-align:center; padding:60px 20px; color:#64748b;">
+    <div style="text-align:center; padding:60px 20px; color:#999;">
         <div style="font-size:2rem; margin-bottom:12px;">📋</div>
         <div>Нет решений по выбранным фильтрам</div>
     </div>
     {% endif %}
-</div>
+</main>
 
 <script>
 function toggleEdit(id) {
-    const el = document.getElementById('edit-' + id);
-    el.classList.toggle('open');
+    document.querySelectorAll('.edit-panel.open').forEach(el => {
+        if (el.id !== 'edit-' + id) el.classList.remove('open');
+    });
+    document.getElementById('edit-' + id).classList.toggle('open');
 }
 </script>
 </body>
