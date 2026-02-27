@@ -48,14 +48,23 @@ LOCAL_STATUS_TO_HUB = {
 }
 
 
+def ensure_data_dir():
+    data_dir = os.path.dirname(DATA_FILE)
+    if data_dir and not os.path.exists(data_dir):
+        os.makedirs(data_dir, exist_ok=True)
+
+
 def load_data():
     if not os.path.exists(DATA_FILE):
-        return {"decisions": get_initial_decisions(), "history": []}
+        data = {"decisions": get_initial_decisions(), "history": []}
+        save_data(data)
+        return data
     with open(DATA_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
 def save_data(data):
+    ensure_data_dir()
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2, default=str)
 
