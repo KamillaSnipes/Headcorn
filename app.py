@@ -356,50 +356,57 @@ def update(decision_id):
 
 @app.route("/sync", methods=["GET", "POST"])
 def sync():
-    hub_ok = False
-    hub_stats = None
-    sync_result = None
+    try:
+        hub_ok = False
+        hub_stats = {}
+        hub_error = None
 
-    if CONTEXT_HUB_KEY:
-        health = hub_get("/api/health")
-        hub_ok = health and health.get("status") == "ok"
-        if hub_ok:
-            hub_stats = hub_get("/api/decisions/stats")
+        if CONTEXT_HUB_KEY:
+            health = hub_get("/api/health")
+            hub_ok = bool(health and isinstance(health, dict) and health.get("status") == "ok")
+            if hub_ok:
+                stats_result = hub_get("/api/decisions/stats")
+                if isinstance(stats_result, dict):
+                    hub_stats = stats_result
+        else:
+            hub_error = "no_key"
 
-    if request.method == "POST":
-        action = request.form.get("action")
-        if action == "pull":
-            count, msg = sync_pull()
-            flash(msg, "success" if count > 0 else "info")
-        elif action == "push":
-            count, msg = sync_push()
-            flash(msg, "success" if count > 0 else "info")
-        elif action == "full":
-            pull_count, pull_msg = sync_pull()
-            push_count, push_msg = sync_push()
-            flash(f"{pull_msg}. {push_msg}", "success")
-        return redirect(url_for("sync"))
+        if request.method == "POST":
+            action = request.form.get("action")
+            if action == "pull":
+                count, msg = sync_pull()
+                flash(msg, "success" if count > 0 else "info")
+            elif action == "push":
+                count, msg = sync_push()
+                flash(msg, "success" if count > 0 else "info")
+            elif action == "full":
+                pull_count, pull_msg = sync_pull()
+                push_count, push_msg = sync_push()
+                flash(f"{pull_msg}. {push_msg}", "success")
+            return redirect(url_for("sync"))
 
-    data = load_data()
-    local_count = len(data["decisions"])
-    local_with_hub = sum(1 for d in data["decisions"] if d.get("hub_id"))
-    local_only = local_count - local_with_hub
-    last_sync = None
-    for h in reversed(data.get("history", [])):
-        if h.get("action", "").startswith("sync_"):
-            last_sync = h
-            break
+        data = load_data()
+        local_count = len(data["decisions"])
+        local_with_hub = sum(1 for d in data["decisions"] if d.get("hub_id"))
+        local_only = local_count - local_with_hub
+        last_sync = None
+        for h in reversed(data.get("history", [])):
+            if h.get("action", "").startswith("sync_"):
+                last_sync = h
+                break
 
-    return render_template("sync.html",
-        hub_ok=hub_ok,
-        hub_url=CONTEXT_HUB_URL,
-        hub_stats=hub_stats,
-        local_count=local_count,
-        local_with_hub=local_with_hub,
-        local_only=local_only,
-        last_sync=last_sync,
-        has_key=bool(CONTEXT_HUB_KEY),
-    )
+        return render_template("sync.html",
+            hub_ok=hub_ok,
+            hub_url=CONTEXT_HUB_URL,
+            hub_stats=hub_stats,
+            local_count=local_count,
+            local_with_hub=local_with_hub,
+            local_only=local_only,
+            last_sync=last_sync,
+            has_key=bool(CONTEXT_HUB_KEY),
+        )
+    except Exception as e:
+        return f"<h2>Sync Error</h2><pre>{e}</pre><p><a href='/'>← Dashboard</a></p>", 500
 
 
 @app.route("/api/decisions")

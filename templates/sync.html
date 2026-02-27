@@ -174,14 +174,15 @@
         {% elif hub_ok %}
         <p class="connected-text">✓ Подключение установлено</p>
         <p class="meta-text">{{ hub_url }}</p>
-        {% if hub_stats %}
+        {% if hub_stats and hub_stats is mapping %}
         <div class="stats-grid">
             <div class="stat">
-                <div class="stat-num">{{ hub_stats.total or 0 }}</div>
+                <div class="stat-num">{{ hub_stats.get('total', 0) }}</div>
                 <div class="stat-label">В Context Hub</div>
             </div>
             <div class="stat">
-                <div class="stat-num" style="color:#ca8a04;">{{ hub_stats.get('byStatus', {}).get('active', 0) }}</div>
+                {% set by_status = hub_stats.get('byStatus', {}) %}
+                <div class="stat-num" style="color:#ca8a04;">{{ by_status.get('active', 0) if by_status is mapping else 0 }}</div>
                 <div class="stat-label">Активных</div>
             </div>
             <div class="stat">
