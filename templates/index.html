@@ -166,6 +166,8 @@
             cursor: pointer;
             transition: background 0.2s;
             height: fit-content;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-primary:hover {
@@ -281,6 +283,11 @@
             color: #92400e;
         }
 
+        .status-no_deadline {
+            background: #ffedd5;
+            color: #c2410c;
+        }
+
         /* Pagination */
         .pagination {
             display: flex;
@@ -325,6 +332,13 @@
             border-color: #2563eb;
         }
 
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #64748b;
+        }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .sidebar { width: 200px; }
@@ -357,39 +371,39 @@
                     <span class="nav-icon">📊</span>
                     <span class="nav-label">Dashboard</span>
                 </a>
-                <a href="/decisions" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">📋</span>
                     <span class="nav-label">Решения</span>
                 </a>
-                <a href="/problems" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">🔴</span>
                     <span class="nav-label">Проблемы</span>
                 </a>
-                <a href="/insights" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">💡</span>
                     <span class="nav-label">Инсайты</span>
                 </a>
-                <a href="/conflicts" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">⚡</span>
                     <span class="nav-label">Конфликты</span>
                 </a>
-                <a href="/graph" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">🕸️</span>
                     <span class="nav-label">Граф</span>
                 </a>
-                <a href="/leads" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">👥</span>
                     <span class="nav-label">Руководители</span>
                 </a>
-                <a href="/ai-suggestions" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">🤖</span>
                     <span class="nav-label">Предложения AI</span>
                 </a>
-                <a href="/duplicates" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">📄</span>
                     <span class="nav-label">Дубликаты</span>
                 </a>
-                <a href="/analytics" class="nav-item">
+                <a href="/" class="nav-item">
                     <span class="nav-icon">📈</span>
                     <span class="nav-label">Аналитика</span>
                 </a>
@@ -406,37 +420,34 @@
         <!-- Main Content -->
         <main class="main">
             <div class="main-header">
-                <h1>Решения ({{ decisions|length }})</h1>
+                <h1>Решения ({{ stats.total }})</h1>
             </div>
 
             <!-- Filters -->
             <form class="filters" method="GET" action="/">
                 <div class="filter-group">
-                    <label>Домен</label>
-                    <select name="domain" class="filter-select">
-                        <option value="">Все домены</option>
-                        <option value="internal" {% if request.args.get('domain') == 'internal' %}selected{% endif %}>internal</option>
-                        <option value="sales" {% if request.args.get('domain') == 'sales' %}selected{% endif %}>sales</option>
-                        <option value="hr" {% if request.args.get('domain') == 'hr' %}selected{% endif %}>hr</option>
-                        <option value="china" {% if request.args.get('domain') == 'china' %}selected{% endif %}>china</option>
-                        <option value="finance" {% if request.args.get('domain') == 'finance' %}selected{% endif %}>finance</option>
-                        <option value="operations" {% if request.args.get('domain') == 'operations' %}selected{% endif %}>operations</option>
+                    <label>Блок</label>
+                    <select name="block" class="filter-select" onchange="this.form.submit()">
+                        <option value="all" {% if filter_block == 'all' %}selected{% endif %}>Все блоки</option>
+                        {% for block_id, block_name in block_map.items() %}
+                        <option value="{{ block_id }}" {% if filter_block == block_id %}selected{% endif %}>{{ block_name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="filter-group">
                     <label>Статус</label>
-                    <select name="status" class="filter-select">
-                        <option value="">Все статусы</option>
-                        <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>active</option>
-                        <option value="archive" {% if request.args.get('status') == 'archive' %}selected{% endif %}>archive</option>
-                        <option value="done" {% if request.args.get('status') == 'done' %}selected{% endif %}>done</option>
+                    <select name="status" class="filter-select" onchange="this.form.submit()">
+                        <option value="all" {% if filter_status == 'all' %}selected{% endif %}>Все статусы</option>
+                        {% for status_id, status_info in status_map.items() %}
+                        <option value="{{ status_id }}" {% if filter_status == status_id %}selected{% endif %}>{{ status_info.emoji }} {{ status_info.label }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="filter-group filter-search">
                     <label>Поиск</label>
                     <input type="text" name="q" class="filter-input" placeholder="Поиск по названию..." value="{{ request.args.get('q', '') }}">
                 </div>
-                <button type="submit" class="btn-primary">Найти</button>
+                <a href="/add" class="btn-primary">＋ Новое решение</a>
             </form>
 
             <!-- Table -->
@@ -453,43 +464,54 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for d in decisions %}
+                        {% for block_id, decisions in blocks.items() %}
+                            {% for d in decisions %}
+                            <tr>
+                                <td class="cell-name">
+                                    <a href="/edit/{{ d.id }}" class="link-primary">{{ d.decision }}</a>
+                                </td>
+                                <td>
+                                    {% set domain_map = {
+                                        'structure': 'hr', 'sales': 'sales', 'coo': 'management',
+                                        'finance': 'finance', 'ops': 'operations', 'open': 'general'
+                                    } %}
+                                    <span class="badge-domain">{{ domain_map.get(d.block, d.block) }}</span>
+                                </td>
+                                <td class="cell-impact">—</td>
+                                <td class="cell-owner">{{ d.responsible or '—' }}</td>
+                                <td class="cell-deadline">{{ d.deadline or '—' }}</td>
+                                <td>
+                                    {% if d.status == 'active' %}
+                                        <span class="badge-status status-active">active</span>
+                                    {% elif d.status == 'overdue' %}
+                                        <span class="badge-status status-overdue">active</span>
+                                    {% elif d.status == 'done' %}
+                                        <span class="badge-status status-done">archive</span>
+                                    {% elif d.status == 'deferred' %}
+                                        <span class="badge-status status-deferred">deferred</span>
+                                    {% elif d.status == 'no_deadline' %}
+                                        <span class="badge-status status-no_deadline">no deadline</span>
+                                    {% else %}
+                                        <span class="badge-status status-active">{{ d.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                        {% if not blocks %}
                         <tr>
-                            <td class="cell-name">
-                                <a href="/decision/{{ d.id }}" class="link-primary">{{ d.title }}</a>
-                            </td>
-                            <td>
-                                {% set domain_map = {
-                                    'structure': 'hr', 'sales': 'sales', 'coo': 'management',
-                                    'finance': 'finance', 'ops': 'operations', 'open': 'general'
-                                } %}
-                                <span class="badge-domain">{{ domain_map.get(d.block, d.block) }}</span>
-                            </td>
-                            <td class="cell-impact">—</td>
-                            <td class="cell-owner">{{ d.assignee or '—' }}</td>
-                            <td class="cell-deadline">{{ d.deadline or '—' }}</td>
-                            <td>
-                                {% if d.status == 'active' %}
-                                    <span class="badge-status status-active">active</span>
-                                {% elif d.status == 'overdue' %}
-                                    <span class="badge-status status-overdue">active</span>
-                                {% elif d.status == 'done' %}
-                                    <span class="badge-status status-done">archive</span>
-                                {% elif d.status == 'deferred' %}
-                                    <span class="badge-status status-deferred">deferred</span>
-                                {% else %}
-                                    <span class="badge-status status-active">{{ d.status }}</span>
-                                {% endif %}
+                            <td colspan="6" class="empty-state">
+                                Нет решений для отображения
                             </td>
                         </tr>
-                        {% endfor %}
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
 
             <!-- Pagination -->
             <div class="pagination">
-                <span class="pagination-info">Всего: {{ decisions|length }} решений</span>
+                <span class="pagination-info">Всего: {{ stats.total }} решений</span>
                 <div class="pagination-buttons">
                     <button class="btn-page" disabled>←</button>
                     <button class="btn-page active">1</button>
