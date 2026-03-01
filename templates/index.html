@@ -3,476 +3,500 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Decision Tracker — Headcorn</title>
+    <title>Context Hub — Knowledge Graph</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: #f8f9fa;
-            color: #1a1a2e;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            color: #334155;
+            line-height: 1.5;
             min-height: 100vh;
-            display: flex;
         }
 
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
         .sidebar {
-            width: 220px;
+            width: 240px;
             background: #fff;
-            border-right: 1px solid #e8e8e8;
-            padding: 20px 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            overflow-y: auto;
-            z-index: 10;
-        }
-        .sidebar-brand {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid #f0f0f0;
-            margin-bottom: 8px;
-        }
-        .sidebar-brand h2 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #1a1a2e;
-        }
-        .sidebar-brand .sub {
-            font-size: 0.7rem;
-            color: #999;
-            margin-top: 2px;
-        }
-        .sidebar nav a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            color: #555;
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 500;
-            transition: all 0.15s;
-            border-left: 3px solid transparent;
-        }
-        .sidebar nav a:hover { background: #f8f9fa; color: #1a1a2e; }
-        .sidebar nav a.active {
-            background: #eef2ff;
-            color: #4f46e5;
-            border-left-color: #4f46e5;
-            font-weight: 600;
-        }
-        .sidebar nav a .icon { font-size: 1rem; width: 20px; text-align: center; }
-
-        .main {
-            margin-left: 220px;
-            flex: 1;
-            padding: 28px 32px;
-            min-height: 100vh;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .page-header h1 { font-size: 1.5rem; font-weight: 700; color: #1a1a2e; }
-
-        .btn {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 8px 16px; border-radius: 8px; border: none;
-            font-size: 0.82rem; font-weight: 500; cursor: pointer;
-            text-decoration: none; transition: all 0.15s;
-        }
-        .btn-primary { background: #4f46e5; color: white; }
-        .btn-primary:hover { background: #4338ca; }
-        .btn-sm { padding: 5px 10px; font-size: 0.75rem; border-radius: 6px; }
-        .btn-outline { background: #fff; color: #555; border: 1px solid #ddd; }
-        .btn-outline:hover { background: #f8f9fa; border-color: #bbb; }
-        .btn-outline.active { background: #eef2ff; border-color: #4f46e5; color: #4f46e5; }
-
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .stat-card .stat-icon {
-            width: 44px; height: 44px;
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.2rem;
-        }
-        .stat-card .stat-num { font-size: 1.8rem; font-weight: 700; line-height: 1; }
-        .stat-card .stat-label { font-size: 0.75rem; color: #888; margin-top: 2px; }
-
-        .alert-box {
-            background: #fff8f0;
-            border: 1px solid #fde2c8;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 24px;
-        }
-        .alert-box .alert-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #c2410c;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .alert-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-top: 1px solid #fde2c8;
-            font-size: 0.82rem;
-        }
-        .alert-item:first-of-type { border-top: none; }
-        .alert-item .dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: #ef4444; display: inline-block; margin-right: 8px;
-        }
-        .alert-item .no-owner { color: #999; font-size: 0.75rem; }
-
-        .filters-bar {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .filters-bar .filter-label {
-            font-size: 0.75rem;
-            color: #888;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-right: 4px;
-        }
-
-        .tag {
-            display: inline-flex;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-        .tag-red { background: #fef2f2; color: #dc2626; }
-        .tag-yellow { background: #fefce8; color: #ca8a04; }
-        .tag-green { background: #f0fdf4; color: #16a34a; }
-        .tag-gray { background: #f3f4f6; color: #6b7280; }
-        .tag-orange { background: #fff7ed; color: #ea580c; }
-        .tag-blue { background: #eef2ff; color: #4f46e5; }
-
-        .section-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            padding: 12px 16px;
-            background: #fff;
-            border: 1px solid #eee;
-            border-radius: 10px 10px 0 0;
-            margin-top: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .section-title .count {
-            background: #f3f4f6;
-            color: #888;
-            padding: 1px 8px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-        }
-
-        .decision-list {
-            background: #fff;
-            border: 1px solid #eee;
-            border-top: none;
-            border-radius: 0 0 10px 10px;
-        }
-        .decision-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 14px 16px;
-            border-bottom: 1px solid #f5f5f5;
-            transition: background 0.1s;
-        }
-        .decision-row:last-child { border-bottom: none; }
-        .decision-row:hover { background: #fafbff; }
-
-        .decision-id {
-            font-size: 0.7rem;
-            color: #999;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            min-width: 40px;
-            padding-top: 2px;
-        }
-        .decision-body { flex: 1; }
-        .decision-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #1a1a2e;
-            margin-bottom: 6px;
-        }
-        .decision-meta {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-size: 0.75rem;
-            color: #888;
-        }
-        .decision-meta span { display: flex; align-items: center; gap: 3px; }
-        .decision-comment {
-            margin-top: 6px;
-            font-size: 0.78rem;
-            color: #666;
-            background: #f8f9fa;
-            padding: 6px 10px;
-            border-radius: 6px;
-        }
-        .decision-actions {
+            border-right: 1px solid #e2e8f0;
             display: flex;
             flex-direction: column;
-            align-items: flex-end;
-            gap: 6px;
-            min-width: 110px;
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
         }
 
-        .edit-panel {
-            display: none;
-            padding: 12px 16px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #eee;
-        }
-        .edit-panel.open { display: block; }
-        .edit-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 10px;
-            align-items: end;
-        }
-        .edit-grid .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .edit-grid label { font-size: 0.7rem; color: #888; font-weight: 500; }
-        .edit-grid input, .edit-grid select {
-            padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px;
-            font-size: 0.8rem; font-family: inherit; background: #fff;
+        .sidebar-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        .two-col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-top: 24px;
-        }
-        .col-card {
-            background: #fff;
-            border: 1px solid #eee;
-            border-radius: 12px;
-            padding: 20px;
-        }
-        .col-card h3 {
-            font-size: 0.9rem;
+        .sidebar-header h2 {
+            font-size: 18px;
             font-weight: 600;
-            margin-bottom: 12px;
+            color: #1e293b;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: #f8fafc;
+            color: #334155;
+        }
+
+        .nav-item.active {
+            background: #eff6ff;
+            color: #2563eb;
+            border-right: 3px solid #2563eb;
+        }
+
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 12px 0;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            margin-left: 240px;
+            padding: 24px 32px;
+            max-width: calc(100% - 240px);
+        }
+
+        .main-header {
+            margin-bottom: 24px;
+        }
+
+        .main-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        /* Filters */
+        .filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .filter-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .filter-select, .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            color: #374151;
+            min-width: 160px;
+        }
+
+        .filter-select:focus, .filter-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .filter-search {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-search .filter-input {
+            width: 100%;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            height: fit-content;
+        }
+
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table thead {
+            background: #f8fafc;
+        }
+
+        .data-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .col-name { width: 35%; }
+        .col-domain, .col-status { width: 10%; }
+        .col-impact { width: 8%; }
+        .col-owner { width: 20%; }
+        .col-deadline { width: 12%; }
+
+        .link-primary {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .link-primary:hover {
+            text-decoration: underline;
+        }
+
+        .cell-impact { color: #94a3b8; }
+        .cell-owner { color: #475569; }
+        .cell-deadline {
+            color: #475569;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+        }
+
+        /* Badges */
+        .badge-domain {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 12px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 4px 10px;
+            font-size: 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            text-transform: lowercase;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-archived, .status-done {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .status-overdue {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-deferred {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Pagination */
+        .pagination {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        .col-card h3 a { font-size: 0.75rem; color: #4f46e5; text-decoration: none; }
+
+        .pagination-info {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-page {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            color: #374151;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-page:hover:not(:disabled) {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+
+        .btn-page:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-page.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar { width: 200px; }
+            .main { margin-left: 200px; max-width: calc(100% - 200px); }
+        }
 
         @media (max-width: 768px) {
-            .sidebar { display: none; }
-            .main { margin-left: 0; padding: 16px; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); }
-            .edit-grid { grid-template-columns: 1fr 1fr; }
-            .two-col { grid-template-columns: 1fr; }
-            .decision-actions { min-width: auto; }
+            .sidebar { transform: translateX(-100%); }
+            .main { margin-left: 0; max-width: 100%; padding: 16px; }
+            .filters { flex-direction: column; align-items: stretch; }
+            .filter-group, .filter-search { width: 100%; }
+            .filter-select, .filter-input { width: 100%; }
+            .data-table { font-size: 13px; }
+            .data-table th, .data-table td { padding: 10px 12px; }
+            .col-owner, .col-impact { display: none; }
         }
     </style>
 </head>
 <body>
-
-<aside class="sidebar">
-    <div class="sidebar-brand">
-        <h2>Decision Tracker</h2>
-        <div class="sub">Headcorn — контроль исполнения</div>
-    </div>
-    <nav>
-        <a href="{{ url_for('index') }}" class="active"><span class="icon">📊</span> Dashboard</a>
-        <a href="{{ url_for('index') }}?status=overdue"><span class="icon">🔴</span> Просроченные</a>
-        <a href="{{ url_for('index') }}?status=active"><span class="icon">🟡</span> В работе</a>
-        <a href="{{ url_for('sync') }}"><span class="icon">🔄</span> Синхронизация</a>
-        <a href="{{ url_for('add') }}"><span class="icon">➕</span> Новое решение</a>
-        <a href="{{ url_for('api_decisions') }}"><span class="icon">📡</span> API</a>
-    </nav>
-</aside>
-
-<main class="main">
-    <div class="page-header">
-        <h1>Dashboard</h1>
-        <a href="{{ url_for('add') }}" class="btn btn-primary">＋ Новое решение</a>
-    </div>
-
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#eef2ff;">📋</div>
-            <div>
-                <div class="stat-num">{{ stats.total }}</div>
-                <div class="stat-label">Всего решений</div>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Context Hub</h2>
+                <p class="subtitle">Knowledge Graph</p>
             </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#fef2f2;">🔴</div>
-            <div>
-                <div class="stat-num" style="color:#dc2626;">{{ stats.overdue }}</div>
-                <div class="stat-label">Просроченных</div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item active">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Dashboard</span>
+                </a>
+                <a href="/decisions" class="nav-item">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-label">Решения</span>
+                </a>
+                <a href="/problems" class="nav-item">
+                    <span class="nav-icon">🔴</span>
+                    <span class="nav-label">Проблемы</span>
+                </a>
+                <a href="/insights" class="nav-item">
+                    <span class="nav-icon">💡</span>
+                    <span class="nav-label">Инсайты</span>
+                </a>
+                <a href="/conflicts" class="nav-item">
+                    <span class="nav-icon">⚡</span>
+                    <span class="nav-label">Конфликты</span>
+                </a>
+                <a href="/graph" class="nav-item">
+                    <span class="nav-icon">🕸️</span>
+                    <span class="nav-label">Граф</span>
+                </a>
+                <a href="/leads" class="nav-item">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-label">Руководители</span>
+                </a>
+                <a href="/ai-suggestions" class="nav-item">
+                    <span class="nav-icon">🤖</span>
+                    <span class="nav-label">Предложения AI</span>
+                </a>
+                <a href="/duplicates" class="nav-item">
+                    <span class="nav-icon">📄</span>
+                    <span class="nav-label">Дубликаты</span>
+                </a>
+                <a href="/analytics" class="nav-item">
+                    <span class="nav-icon">📈</span>
+                    <span class="nav-label">Аналитика</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/sync" class="nav-item">
+                    <span class="nav-icon">🔄</span>
+                    <span class="nav-label">Синхронизация</span>
+                </a>
             </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#fefce8;">🟡</div>
-            <div>
-                <div class="stat-num" style="color:#ca8a04;">{{ stats.active }}</div>
-                <div class="stat-label">В работе</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#f0fdf4;">🟢</div>
-            <div>
-                <div class="stat-num" style="color:#16a34a;">{{ stats.done }}</div>
-                <div class="stat-label">Выполнено</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon" style="background:#fff7ed;">🟠</div>
-            <div>
-                <div class="stat-num" style="color:#ea580c;">{{ stats.no_deadline }}</div>
-                <div class="stat-label">Без срока</div>
-            </div>
-        </div>
-    </div>
+        </aside>
 
-    {% if stats.overdue > 0 %}
-    <div class="alert-box">
-        <div class="alert-title">⚠️ Требуют внимания: {{ stats.overdue }} просроченных решений</div>
-        {% for block_key, decisions in blocks.items() %}
-        {% for d in decisions %}
-        {% if d.status == 'overdue' %}
-        <div class="alert-item">
-            <div>
-                <span class="dot"></span>
-                <strong>{{ d.decision }}</strong>
-                &nbsp;
-                <span class="tag tag-red">{{ block_map.get(d.block, d.block) }}</span>
+        <!-- Main Content -->
+        <main class="main">
+            <div class="main-header">
+                <h1>Решения ({{ decisions|length }})</h1>
             </div>
-            <div class="no-owner">{{ d.responsible if d.responsible else 'Без ответственного' }}</div>
-        </div>
-        {% endif %}
-        {% endfor %}
-        {% endfor %}
-    </div>
-    {% endif %}
 
-    <div class="filters-bar">
-        <span class="filter-label">Блок:</span>
-        <a href="?block=all&status={{ filter_status }}" class="btn btn-sm btn-outline {% if filter_block == 'all' %}active{% endif %}">Все</a>
-        {% for key, label in block_map.items() %}
-        <a href="?block={{ key }}&status={{ filter_status }}" class="btn btn-sm btn-outline {% if filter_block == key %}active{% endif %}">{{ label }}</a>
-        {% endfor %}
-    </div>
-    <div class="filters-bar">
-        <span class="filter-label">Статус:</span>
-        <a href="?block={{ filter_block }}&status=all" class="btn btn-sm btn-outline {% if filter_status == 'all' %}active{% endif %}">Все</a>
-        {% for key, info in status_map.items() %}
-        <a href="?block={{ filter_block }}&status={{ key }}" class="btn btn-sm btn-outline {% if filter_status == key %}active{% endif %}">{{ info.emoji }} {{ info.label }}</a>
-        {% endfor %}
-    </div>
-
-    {% for block_key, decisions in blocks.items() %}
-    <div class="section-title">
-        {{ block_map.get(block_key, block_key) }}
-        <span class="count">{{ decisions|length }}</span>
-    </div>
-    <div class="decision-list">
-        {% for d in decisions %}
-        <div class="decision-row">
-            <div class="decision-id">{{ d.id }}</div>
-            <div class="decision-body">
-                <div class="decision-title">{{ d.decision }}</div>
-                <div class="decision-meta">
-                    <span>👤 {{ d.responsible }}</span>
-                    {% if d.deadline %}<span>📅 {{ d.deadline }}</span>{% endif %}
-                    {% if d.check_date %}<span>🔍 {{ d.check_date }}</span>{% endif %}
-                    {% if d.source %}<span>📎 {{ d.source }}</span>{% endif %}
+            <!-- Filters -->
+            <form class="filters" method="GET" action="/">
+                <div class="filter-group">
+                    <label>Домен</label>
+                    <select name="domain" class="filter-select">
+                        <option value="">Все домены</option>
+                        <option value="internal" {% if request.args.get('domain') == 'internal' %}selected{% endif %}>internal</option>
+                        <option value="sales" {% if request.args.get('domain') == 'sales' %}selected{% endif %}>sales</option>
+                        <option value="hr" {% if request.args.get('domain') == 'hr' %}selected{% endif %}>hr</option>
+                        <option value="china" {% if request.args.get('domain') == 'china' %}selected{% endif %}>china</option>
+                        <option value="finance" {% if request.args.get('domain') == 'finance' %}selected{% endif %}>finance</option>
+                        <option value="operations" {% if request.args.get('domain') == 'operations' %}selected{% endif %}>operations</option>
+                    </select>
                 </div>
-                {% if d.comment %}
-                <div class="decision-comment">{{ d.comment }}</div>
-                {% endif %}
-            </div>
-            <div class="decision-actions">
-                {% set tag_class = {'overdue': 'tag-red', 'active': 'tag-yellow', 'done': 'tag-green', 'deferred': 'tag-gray', 'no_deadline': 'tag-orange'} %}
-                <span class="tag {{ tag_class.get(d.status, 'tag-gray') }}">{{ status_map[d.status].label }}</span>
-                <button class="btn btn-sm btn-outline" onclick="toggleEdit('{{ d.id }}')">✏️ Изменить</button>
-            </div>
-        </div>
-        <div class="edit-panel" id="edit-{{ d.id }}">
-            <form method="POST" action="{{ url_for('update', decision_id=d.id) }}">
-                <div class="edit-grid">
-                    <div class="form-group">
-                        <label>Статус</label>
-                        <select name="status">
-                            {% for key, info in status_map.items() %}
-                            <option value="{{ key }}" {% if d.status == key %}selected{% endif %}>{{ info.emoji }} {{ info.label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Ответственный</label>
-                        <input type="text" name="responsible" value="{{ d.responsible }}">
-                    </div>
-                    <div class="form-group">
-                        <label>Срок</label>
-                        <input type="date" name="deadline" value="{{ d.deadline }}">
-                    </div>
-                    <div class="form-group">
-                        <label>Комментарий</label>
-                        <input type="text" name="comment" value="{{ d.comment }}">
-                    </div>
+                <div class="filter-group">
+                    <label>Статус</label>
+                    <select name="status" class="filter-select">
+                        <option value="">Все статусы</option>
+                        <option value="active" {% if request.args.get('status') == 'active' %}selected{% endif %}>active</option>
+                        <option value="archive" {% if request.args.get('status') == 'archive' %}selected{% endif %}>archive</option>
+                        <option value="done" {% if request.args.get('status') == 'done' %}selected{% endif %}>done</option>
+                    </select>
                 </div>
-                <button type="submit" class="btn btn-sm btn-primary" style="margin-top:10px;">Сохранить</button>
+                <div class="filter-group filter-search">
+                    <label>Поиск</label>
+                    <input type="text" name="q" class="filter-input" placeholder="Поиск по названию..." value="{{ request.args.get('q', '') }}">
+                </div>
+                <button type="submit" class="btn-primary">Найти</button>
             </form>
-        </div>
-        {% endfor %}
-    </div>
-    {% endfor %}
 
-    {% if not blocks %}
-    <div style="text-align:center; padding:60px 20px; color:#999;">
-        <div style="font-size:2rem; margin-bottom:12px;">📋</div>
-        <div>Нет решений по выбранным фильтрам</div>
-    </div>
-    {% endif %}
-</main>
+            <!-- Table -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="col-name">Название</th>
+                            <th class="col-domain">Домен</th>
+                            <th class="col-impact">Влияние</th>
+                            <th class="col-owner">Ответственный</th>
+                            <th class="col-deadline">Дедлайн</th>
+                            <th class="col-status">Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in decisions %}
+                        <tr>
+                            <td class="cell-name">
+                                <a href="/decision/{{ d.id }}" class="link-primary">{{ d.title }}</a>
+                            </td>
+                            <td>
+                                {% set domain_map = {
+                                    'structure': 'hr', 'sales': 'sales', 'coo': 'management',
+                                    'finance': 'finance', 'ops': 'operations', 'open': 'general'
+                                } %}
+                                <span class="badge-domain">{{ domain_map.get(d.block, d.block) }}</span>
+                            </td>
+                            <td class="cell-impact">—</td>
+                            <td class="cell-owner">{{ d.assignee or '—' }}</td>
+                            <td class="cell-deadline">{{ d.deadline or '—' }}</td>
+                            <td>
+                                {% if d.status == 'active' %}
+                                    <span class="badge-status status-active">active</span>
+                                {% elif d.status == 'overdue' %}
+                                    <span class="badge-status status-overdue">active</span>
+                                {% elif d.status == 'done' %}
+                                    <span class="badge-status status-done">archive</span>
+                                {% elif d.status == 'deferred' %}
+                                    <span class="badge-status status-deferred">deferred</span>
+                                {% else %}
+                                    <span class="badge-status status-active">{{ d.status }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-<script>
-function toggleEdit(id) {
-    document.querySelectorAll('.edit-panel.open').forEach(el => {
-        if (el.id !== 'edit-' + id) el.classList.remove('open');
-    });
-    document.getElementById('edit-' + id).classList.toggle('open');
-}
-</script>
+            <!-- Pagination -->
+            <div class="pagination">
+                <span class="pagination-info">Всего: {{ decisions|length }} решений</span>
+                <div class="pagination-buttons">
+                    <button class="btn-page" disabled>←</button>
+                    <button class="btn-page active">1</button>
+                    <button class="btn-page" disabled>→</button>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>
